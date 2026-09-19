@@ -20,7 +20,7 @@ drift and is not" is worth as much as the drift itself.
 
 ## 1. The CRUD API does not manage tenants or API keys
 
-`docs/arc42.md` (§1.1, §3) and `docs/README.md` both describe
+`docs/arc42.md` (§1.1, §4 and §5.2) and `docs/README.md` both describe
 `vym-fyi-server-crud` as a "CRUD/API server for **tenants, API keys**, and
 short links".
 
@@ -61,8 +61,9 @@ document mentions.
 
 ## 3. `docs/arc42.md` omits a crate entirely
 
-Its system list (§1) and workspace inventory (§5.1) name five crates. The root
-`Cargo.toml` has **six** workspace members: `vym-fyi-node`, the N-API `cdylib`
+Its opening system list, its §5.1 workspace structure and its §5.2
+per-crate responsibilities all name five crates. The root `Cargo.toml` has
+**six** workspace members: `vym-fyi-node`, the N-API `cdylib`
 binding for Node.js, is missing from both lists.
 
 `docs/README.md` omits it as well.
