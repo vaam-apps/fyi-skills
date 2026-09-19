@@ -5,14 +5,14 @@ Every call the CRUD API accepts, with real headers. Assumes a client id of
 
 ## Headers, every time
 
-```
+```text
 X-API-Key: client-a-key
 X-Client-Id: client-a
 ```
 
 Or, equivalently for the key:
 
-```
+```text
 Authorization: ApiKey client-a-key
 ```
 

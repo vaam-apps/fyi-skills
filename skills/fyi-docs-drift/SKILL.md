@@ -27,7 +27,7 @@ short links".
 **It serves five routes and none of them touch tenants or API keys**
 (`crates/vym-fyi-server-crud/src/main.rs`):
 
-```
+```text
 GET  /health
 POST /api/links
 GET  /api/links
@@ -71,7 +71,7 @@ binding for Node.js, is missing from both lists.
 
 §6.2 shows:
 
-```
+```text
 vym-fyi-client links create --client client-a --slug abc123 --target https://example.com
 ```
 

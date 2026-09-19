@@ -60,7 +60,7 @@ when non-empty after trimming).
 
 Both implementations emit exactly these keys, in this order:
 
-```
+```text
 page  per_page  slug  target_contains  active
 created_before  created_after  expires_before  expires_after
 ```
@@ -77,7 +77,7 @@ silently stop being able to express it.
 
 Exports three async functions and four object types:
 
-```
+```text
 ping(options: CrudOptions, use_master?: boolean): Promise<void>
 create_link(options: CrudOptions, input: CreateLinkInput): Promise<LinkResponse>
 list_links(options: CrudOptions, input: ListLinksInput): Promise<LinkResponse[]>
