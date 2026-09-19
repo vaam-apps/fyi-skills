@@ -64,7 +64,10 @@ jobs:
   #      free Node script that reads files and shells out to `git`. It takes
   #      no network input and serves nothing.
   #   2. This repository is configured with GitHub code scanning "DEFAULT
-  #      SETUP" (actions + javascript), matching vaam-apps/vsms-skills. A
+  #      SETUP" — javascript / javascript-typescript / typescript, as the
+  #      API reports it. (vaam-apps/vsms-skills also carries `actions`;
+  #      GitHub declined to add it here, and Actions is covered instead by
+  #      VALIDATE_GITHUB_ACTIONS_ZIZMOR in the lint job below.) A
   #      workflow-based CodeQL config cannot coexist with default setup —
   #      turning one on here would break the other, the same reason
   #      vaam-apps/ui's caller leaves CodeQL out.
