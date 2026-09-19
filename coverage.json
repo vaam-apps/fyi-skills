@@ -1,0 +1,115 @@
+{
+  "//": "The docs<->skills parity map. Checked in BOTH directions by tools/verify-coverage.mjs: a fyi documentation page (a docs/**/*.md, a crates/**/Cargo.toml or README, or a charts/*/Chart.yaml) that no skill claims fails, and a claimed path that no longer exists in fyi fails. The crates/**/Cargo.toml half is the load-bearing one: a seventh crate fails the gate by name until some skill covers it. See README.md and CONTRIBUTING.md.",
+  "baseline": {
+    "//": "A skill is true of *a* fyi, not of fyi. The project cuts release-please releases, but a skill describes the tree, and the tree moves between tags — so the honest version identity is a commit and a date. Every SKILL.md is stamped with this ref (or a descendant of it) and the gate refuses one stamped otherwise. See VERSIONING.md.",
+    "fyiRef": "2ed14f8c04032deb38b02006038ce834db36f9c0",
+    "fyiRefShort": "2ed14f8c",
+    "fyiCommitDate": "2026-09-19",
+    "verifiedAt": "2026-09-19"
+  },
+  "skills": {
+    "fyi": {
+      "covers": [
+        "README.md",
+        "AGENTS.md",
+        "CLAUDE.md",
+        "docs/index.md",
+        "Cargo.toml",
+        "CHANGELOG.md"
+      ]
+    },
+    "fyi-docs-drift": {
+      "covers": ["docs/arc42.md", "docs/README.md", "mkdocs.yml"]
+    },
+    "fyi-crud-api": {
+      "covers": [
+        "crates/vym-fyi-server-crud",
+        "crates/vym-fyi-server-crud/src/main.rs",
+        "crates/vym-fyi-server-crud/src/handlers/links.rs",
+        "crates/vym-fyi-server-crud/src/handlers/health.rs",
+        "crates/vym-fyi-server-crud/src/models.rs"
+      ]
+    },
+    "fyi-redirect": {
+      "covers": [
+        "crates/vym-fyi-server-redirect",
+        "crates/vym-fyi-server-redirect/src/main.rs",
+        "crates/vym-fyi-server-redirect/src/app.rs",
+        "crates/vym-fyi-server-redirect/src/handlers/short_link.rs",
+        "crates/vym-fyi-server-redirect/src/handlers/health.rs"
+      ]
+    },
+    "fyi-auth-tenancy": {
+      "covers": [
+        "crates/vym-fyi-server-crud/src/auth.rs",
+        "crates/vym-fyi-server-crud/src/app.rs",
+        "crates/vym-fyi-model/src/services/config.rs",
+        "crates/vym-fyi-model/tests/config_flow.rs",
+        ".docker/tenants.yaml"
+      ]
+    },
+    "fyi-data": {
+      "covers": [
+        "crates/vym-fyi-model",
+        "crates/vym-fyi-model/src/lib.rs",
+        "crates/vym-fyi-model/src/models/errors.rs",
+        "crates/vym-fyi-model/src/models/url_shortener.rs",
+        "crates/vym-fyi-model/src/services/repos.rs",
+        "crates/vym-fyi-model/src/services/slug.rs",
+        "crates/vym-fyi-model/src/services/http_client.rs",
+        "crates/vym-fyi-server-crud/migrations/20250101000000_init.sql"
+      ]
+    },
+    "fyi-clients": {
+      "covers": [
+        "crates/vym-fyi-client",
+        "crates/vym-fyi-client/src/main.rs",
+        "crates/vym-fyi-client/src/shared/cli.rs",
+        "crates/vym-fyi-client/src/shared/config.rs",
+        "crates/vym-fyi-node",
+        "crates/vym-fyi-node/src/lib.rs",
+        "crates/vym-fyi-node/build.rs",
+        "crates/vym-fyi-model/src/services/query_adapter.rs"
+      ]
+    },
+    "fyi-ops": {
+      "covers": [
+        "crates/vym-fyi-healthcheck",
+        "crates/vym-fyi-healthcheck/src/main.rs",
+        "charts/vym-fyi-server-crud",
+        "charts/vym-fyi-server-redirect",
+        "Dockerfile",
+        ".dockerignore",
+        "compose.yaml",
+        ".docker/prometheus.yml",
+        ".docker/grafana/dashboards/crud.dashboard.py",
+        ".docker/grafana/dashboards/redirect.dashboard.py",
+        "crates/vym-fyi-model/src/services/axum_metrics.rs",
+        "crates/vym-fyi-model/src/services/static_assets.rs",
+        "crates/vym-fyi-model/src/services/logging.rs",
+        "static"
+      ]
+    },
+    "fyi-tooling": {
+      "covers": [
+        ".github/workflows/ci.yml",
+        ".github/workflows/quality.yml",
+        ".github/workflows/build.yml",
+        ".github/workflows/release.yml",
+        ".github/workflows/release-please.yml",
+        ".github/workflows/helm-publish.yml",
+        ".github/workflows/pr-title.yml",
+        ".github/workflows/docs.yml",
+        "release-please-config.json",
+        ".release-please-manifest.json",
+        "deny.toml",
+        "trivy.yaml",
+        ".clippy.toml",
+        ".pre-commit-config.yaml",
+        "ci/commit-message-parse/parse.mjs"
+      ]
+    }
+  },
+  "exempt": [],
+  "exemptReasons": {}
+}

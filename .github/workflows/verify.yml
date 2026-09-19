@@ -1,0 +1,63 @@
+name: verify
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    # Daily, so a fyi merge that outruns this repository turns up here as a red
+    # build rather than as a confidently wrong agent three weeks later.
+    - cron: "43 6 * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: verify-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  coverage:
+    name: docs↔skills parity
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out fyi-skills
+        uses: actions/checkout@v4
+        with:
+          path: fyi-skills
+
+      - name: Check out fyi
+        uses: actions/checkout@v4
+        with:
+          repository: vaam-apps/fyi
+          path: fyi
+          # FULL history, not a shallow clone, and this is not belt-and-braces.
+          # The gate never BUILDS fyi — it reads docs and tests that claimed
+          # paths exist, for which depth 1 genuinely would be enough. But it
+          # also asks git WHEN a page was added, to refuse a page that appeared
+          # under an already-claimed directory since the baseline commit. A
+          # depth-1 clone does not contain the baseline commit the moment
+          # fyi's main moves one commit past it, so `cat-file -e
+          # <baseline>:<path>` fails for every page, every page looks "added
+          # AFTER the baseline", and the gate fails with a screenful of gaps
+          # that are not gaps. vaam-apps/vpay-skills shipped `fetch-depth: 1`
+          # with exactly the "reads docs, shallow is enough" reasoning above
+          # and measured that failure for real after vaam-apps/vpay#182 merged;
+          # inherited here rather than rediscovered.
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: verify-coverage
+        working-directory: fyi-skills
+        run: node tools/verify-coverage.mjs "$GITHUB_WORKSPACE/fyi"
+
+  format:
+    name: prettier
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: npx --yes prettier@3 --check "**/*.{md,json,yml}"

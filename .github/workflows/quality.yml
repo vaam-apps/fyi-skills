@@ -1,0 +1,140 @@
+# Calls the org-wide quality workflows in vaam-apps/.github.
+#
+# The implementations live in one place; what this file owns is the answer to
+# "has anything meaningful changed", which is necessarily per-repo. This repo
+# is almost entirely Markdown (the skills themselves) plus one Node tool
+# script (tools/verify-coverage.mjs) that verify.yml already runs against a
+# checked-out fyi — there is no Rust, no Dockerfile, no compose file, and no
+# package.json, so most of the org's usual inputs (Rust CodeQL, Trivy misconfig
+# targets) have nothing to analyze here and are left out rather than copied
+# in unused.
+#
+# Gating is a per-job `if:` over a paths-filter job, never `on.pull_request.paths`.
+# A skipped job still reports and satisfies a required status check; a workflow
+# that never triggers reports nothing and blocks the PR forever on a check that
+# will never arrive.
+name: quality
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions: {}
+
+concurrency:
+  group: quality-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  changes:
+    name: what changed
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      code: ${{ steps.filter.outputs.code }}
+      docs: ${{ steps.filter.outputs.docs }}
+      any: ${{ steps.filter.outputs.any }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4.0.3
+        id: filter
+        with:
+          filters: |
+            # Positive lists, never '**' plus '!' exclusions: paths-filter ORs
+            # its rules through picomatch, so '**' matches everything and the
+            # negations never subtract.
+            code:
+              - 'tools/**'
+            docs:
+              - '**/*.md'
+              - '**/*.json'
+            any:
+              - '**'
+
+  # No CodeQL job here, and `codeql-languages: "[]"` below is what says so.
+  # Two reasons, in order:
+  #
+  #   1. There is nothing for it to analyse. The entire non-Markdown surface
+  #      of this repository is `tools/verify-coverage.mjs` — one dependency-
+  #      free Node script that reads files and shells out to `git`. It takes
+  #      no network input and serves nothing.
+  #   2. This repository is configured with GitHub code scanning "DEFAULT
+  #      SETUP" (actions + javascript), matching vaam-apps/vsms-skills. A
+  #      workflow-based CodeQL config cannot coexist with default setup —
+  #      turning one on here would break the other, the same reason
+  #      vaam-apps/ui's caller leaves CodeQL out.
+  #
+  # The docs half of sast.yml (link integrity) is worth running regardless:
+  # this repo is almost entirely Markdown, and it links back into itself and
+  # into fyi by commit SHA and PR number.
+  sast:
+    name: SAST (docs)
+    needs: changes
+    if: needs.changes.outputs.docs == 'true'
+    permissions:
+      security-events: write
+      contents: read
+      actions: read
+    uses: vaam-apps/.github/.github/workflows/sast.yml@b04a3ff5fd9334005b6cd9f14ac55bc1ae7f2879 # vaam-apps/.github main
+    with:
+      codeql-languages: "[]"
+      docs-globs: "**/*.md"
+      # Annotate, don't fail. Skills here deliberately quote illustrative
+      # sample URLs — `https://example.test`, `localhost:8000` — inside fenced code
+      # blocks, as request examples rather than links, and those will never
+      # resolve. A hard fail on a link check nobody can fix by editing the
+      # target is the trap vaam-apps/vpay-skills and vaam-apps/vsms-skills
+      # each hit and each turned off for the same reason; inherited here
+      # rather than rediscovered.
+      fail-on-broken-links: false
+    secrets:
+      app-client-id: ${{ secrets.RELEASE_PLEASE_APP_CLIENT_ID }}
+      app-private-key: ${{ secrets.RELEASE_PLEASE_APP_PRIVATE_KEY }}
+
+  lint:
+    name: lint
+    needs: changes
+    if: needs.changes.outputs.any == 'true'
+    permissions:
+      contents: read
+      statuses: write
+    uses: vaam-apps/.github/.github/workflows/lint.yml@b04a3ff5fd9334005b6cd9f14ac55bc1ae7f2879 # vaam-apps/.github main
+    with:
+      # fix: false, deliberately, rather than the org default of true. This
+      # repo's own verify.yml already runs `prettier --check "**/*.{md,json,yml}"`
+      # as its `format` job — exactly the file types super-linter's own
+      # FIX_MARKDOWN/FIX_JSON would also rewrite. lint.yml's own header names
+      # this failure mode directly ("Two auto-fixers on one file do not
+      # converge — they fight, and the commit log records the argument"), and
+      # here prettier already owns that turf, not Rust/JS tooling as in the
+      # other adopting repos. Super-linter still validates Markdown/YAML/JSON
+      # and — the real new coverage — VALIDATE_GITHUB_ACTIONS_ZIZMOR, which
+      # nothing in this repo runs today; it just never pushes a competing fix.
+      fix: false
+    secrets:
+      app-client-id: ${{ secrets.RELEASE_PLEASE_APP_CLIENT_ID }}
+      app-private-key: ${{ secrets.RELEASE_PLEASE_APP_PRIVATE_KEY }}
+
+  trivy:
+    name: trivy
+    needs: changes
+    if: needs.changes.outputs.code == 'true' || needs.changes.outputs.docs == 'true'
+    permissions:
+      security-events: write
+      contents: read
+    uses: vaam-apps/.github/.github/workflows/trivy.yml@b04a3ff5fd9334005b6cd9f14ac55bc1ae7f2879 # vaam-apps/.github main
+    with:
+      # secret only: there is no package.json/Cargo.lock for the vuln scanner
+      # to read, and no Dockerfile/compose/Helm chart for misconfig to check.
+      # Secret scanning is the one Trivy scanner with a real target here — it
+      # walks every file, Markdown included, which is exactly where a pasted
+      # credential example would land in a skills repo.
+      scanners: "secret"
+    secrets:
+      app-client-id: ${{ secrets.RELEASE_PLEASE_APP_CLIENT_ID }}
+      app-private-key: ${{ secrets.RELEASE_PLEASE_APP_PRIVATE_KEY }}
