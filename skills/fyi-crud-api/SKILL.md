@@ -34,7 +34,9 @@ description: "The vym.fyi write API — the five routes it actually serves (and 
 
 ## `POST /api/links`
 
-Body: `{"slug": "optional", "target_url": "required"}`.
+Body: `{"slug": "optional", "target_url": "required"}`. Copy-pasteable
+`curl` invocations for every route, and a table for reading a failure, are in
+[`references/worked-requests.md`](references/worked-requests.md).
 
 The handler picks a strategy by whether `slug`, **trimmed**, is present and
 non-empty:
